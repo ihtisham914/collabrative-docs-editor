@@ -61,6 +61,7 @@ declare type CollaboratorProps = {
     creatorId: string;
     collaborator: User;
     user: User;
+    currentUserType: UserType;
 };
 
 declare type CollaborativeRoomProps = {

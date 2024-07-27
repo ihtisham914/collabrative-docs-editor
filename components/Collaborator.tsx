@@ -2,14 +2,30 @@ import Image from 'next/image'
 import React, { useState } from 'react'
 import UserTypeSelector from './UserTypeSelector'
 import { Button } from './ui/button'
+import { removeCollaborator, updateDocumentAccess } from '@/lib/actions/room.actions'
 
-const Collaborator = ({ roomId, collaborator, user, email, creatorId }: CollaboratorProps) => {
+const Collaborator = ({ roomId, collaborator, user, email, creatorId, currentUserType }: CollaboratorProps) => {
     const [userType, setUserType] = useState(collaborator.userType || 'viewer')
     const [loading, setLoading] = useState(false)
 
-    const shareDocumentHandler = async (type: string) => { }
+    const shareDocumentHandler = async (type: string) => {
+        setLoading(true)
 
-    const removeCollaboratorHandler = async (email: string) => { }
+        await updateDocumentAccess({ roomId, email, userType: type as UserType, updatedBy: user })
+
+        setLoading(false)
+    }
+
+    const removeCollaboratorHandler = async (email: string) => {
+        setLoading(true)
+
+        await removeCollaborator({ roomId, email })
+
+        setLoading(false)
+    }
+
+
+    console.log(userType)
 
     return (
         <li className='flex items-center justify-between gap-2 py-3'>
@@ -27,12 +43,16 @@ const Collaborator = ({ roomId, collaborator, user, email, creatorId }: Collabor
             </div>
             {creatorId === collaborator.id ? <p className='text-sm text-blue-100'>Owner</p> :
                 <div className='flex items-center'>
-                    <UserTypeSelector
-                        userType={userType as UserType}
-                        setUserType={setUserType || 'viewer'}
-                        onClickHandler={shareDocumentHandler}
-                    />
-                    <Button type='button' onClick={() => removeCollaboratorHandler(email)} >Remove</Button>
+                    {(currentUserType === 'editor' || currentUserType === 'creator') && <>
+                        {email !== user.email &&
+                            <UserTypeSelector
+                                userType={userType as UserType}
+                                setUserType={setUserType || 'viewer'}
+                                onClickHandler={shareDocumentHandler}
+                            />
+                        }</>
+                    }
+                    <Button type='button' onClick={() => removeCollaboratorHandler(email)} >{email !== user.email ? 'Remove' : 'Leave'}</Button>
                 </div>
             }
         </li>
